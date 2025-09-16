@@ -19,15 +19,20 @@ const isValidRating = (rating) => Number.isInteger(rating) && rating >= 1 && rat
 const formatDateTime = (value) => {
   const date = value instanceof Date ? value : new Date(value);
 
-  const pad = (num) => String(num).padStart(2, '0');
+  const formatter = new Intl.DateTimeFormat('uk-UA', {
+    timeZone: 'Europe/Kyiv',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
 
-  const day = pad(date.getDate());
-  const month = pad(date.getMonth() + 1);
-  const year = date.getFullYear();
-  const hours = pad(date.getHours());
-  const minutes = pad(date.getMinutes());
+  const parts = formatter.formatToParts(date);
+  const get = (type) => parts.find((part) => part.type === type)?.value || '';
 
-  return `${day}.${month}.${year} ${hours}:${minutes}`;
+  return `${get('day')}.${get('month')}.${get('year')} ${get('hour')}:${get('minute')}`;
 };
 
 const sendTelegramMessage = async (text) => {
@@ -58,7 +63,7 @@ const sendTelegramNotification = async ({ name, rating, reason }) => {
     `⭐️ ${rating}/5`,
     comment ? `💬 Коментар: ${comment}` : null,
     '',
-    `🕑 ${formatDateTime(new Date())}`
+    `🕑 ${formatDateTime(Date.now())}`
   ]
     .filter(Boolean)
     .join('\n');
@@ -110,7 +115,7 @@ app.post('/api/review/google-click', async (req, res) => {
       '',
       `👤 Імя: ${guestName || 'Невідомо'}`,
       '',
-      `🕑 ${formatDateTime(new Date())}`
+      `🕑 ${formatDateTime(Date.now())}`
     ].join('\n');
 
     await sendTelegramMessage(message);
