@@ -164,6 +164,7 @@
     tipsBanner.hidden = false;
   };
 
+
   const sendGoogleClickEvent = () => {
     if (googleClickSent) {
       return;
@@ -245,6 +246,8 @@
       void sendGoogleClickEvent();
     });
   }
+
+  // Removed notification on main page master review link; tracking stays only on /masters
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
