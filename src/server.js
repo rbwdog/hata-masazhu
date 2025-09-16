@@ -20,7 +20,6 @@ const MASTER_CLICK_DEDUP_MS = Number(process.env.MASTER_CLICK_DEDUP_MS || 30_000
 const masterClickCache = new Map();
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '..', 'public')));
 // Review gating removed: /masters is publicly accessible
 
 // Trust proxy (needed on Render/Heroku to detect HTTPS)
@@ -46,6 +45,18 @@ app.use((req, res, next) => {
 app.get('/healthz', (req, res) => {
   res.set('Cache-Control', 'no-store');
   res.type('text/plain').send('ok');
+});
+
+// Static files (no implicit index) and explicit routes
+const publicDir = path.join(__dirname, '..', 'public');
+app.use(express.static(publicDir, {
+  index: false,
+  redirect: false,
+  fallthrough: true,
+}));
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(publicDir, 'index.html'));
 });
 
 // Rate limiters
