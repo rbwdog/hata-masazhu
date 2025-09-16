@@ -16,6 +16,19 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 
 const isValidRating = (rating) => Number.isInteger(rating) && rating >= 1 && rating <= 5;
 
+const sendTelegramMessage = async (text) => {
+  if (!telegramBotToken || !telegramChatId) {
+    throw new Error('Telegram configuration is missing. Please set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID.');
+  }
+
+  const url = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
+
+  await axios.post(url, {
+    chat_id: telegramChatId,
+    text,
+  });
+};
+
 const sendTelegramNotification = async ({ name, rating, reason }) => {
   if (!telegramBotToken || !telegramChatId) {
     throw new Error('Telegram configuration is missing. Please set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID.');
@@ -36,12 +49,8 @@ const sendTelegramNotification = async ({ name, rating, reason }) => {
   }
 
   const message = messageLines.join('\n');
-  const url = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
 
-  await axios.post(url, {
-    chat_id: telegramChatId,
-    text: message,
-  });
+  await sendTelegramMessage(message);
 };
 
 app.post('/api/review', async (req, res) => {
@@ -75,6 +84,31 @@ app.post('/api/review', async (req, res) => {
   } catch (error) {
     console.error('Failed to process review', error);
     return res.status(500).json({ error: 'Unable to submit review right now. Please try again later.' });
+  }
+});
+
+app.post('/api/review/google-click', async (req, res) => {
+  try {
+    const { name = '', rating } = req.body || {};
+    const parts = [];
+
+    if (name) {
+      parts.push(`Гість: ${name}`);
+    }
+
+    if (typeof rating !== 'undefined') {
+      parts.push(`Оцінка: ${rating}`);
+    }
+
+    const messageRoot = parts.length ? parts.join('\n') + '\n' : '';
+    const message = `${messageRoot}Клієнт перейшов за посиланням Google для залишення відгуку.`;
+
+    await sendTelegramMessage(message);
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Failed to send Google click notification', error);
+    return res.status(500).json({ error: 'Не вдалося надіслати повідомлення в Telegram.' });
   }
 });
 

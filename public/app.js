@@ -3,7 +3,6 @@
   const stars = Array.from(document.querySelectorAll('.star'));
   const ratingInput = document.getElementById('rating-value');
   const nameInput = document.getElementById('guest-name');
-  const feedbackGroup = document.getElementById('feedback-group');
   const feedbackInput = document.getElementById('feedback');
   const statusEl = document.querySelector('.form-status');
   const submitBtn = form.querySelector('.submit-btn');
@@ -11,6 +10,8 @@
   const rewardLink = document.getElementById('reward-link');
 
   let selectedRating = null;
+  let googleClickSent = false;
+  let formLocked = false;
 
   const STORAGE_KEY = 'hataMasazhuReview';
 
@@ -44,6 +45,7 @@
   };
 
   const disableForm = () => {
+    formLocked = true;
     form.setAttribute('aria-disabled', 'true');
     submitBtn.disabled = true;
     submitBtn.textContent = 'Відгук залишено';
@@ -76,6 +78,8 @@
     const reviewReason = (review.reason || '').trim();
     feedbackInput.value = reviewReason;
     feedbackInput.required = ratingValue !== null && ratingValue < 5;
+
+    googleClickSent = Boolean(review.googleClicked);
 
     if (review.redirectUrl) {
       showReward(review.redirectUrl, true);
@@ -120,6 +124,47 @@
     }
   };
 
+  const sendGoogleClickEvent = () => {
+    if (googleClickSent) {
+      return;
+    }
+
+    const storedReview = getStoredReview();
+    const nameValue = (storedReview?.name || nameInput.value || '').trim();
+    const ratingValue = storedReview?.rating ?? selectedRating;
+    const payload = JSON.stringify({ name: nameValue, rating: ratingValue });
+    const blob = new Blob([payload], { type: 'application/json' });
+
+    const markClicked = () => {
+      googleClickSent = true;
+      if (storedReview) {
+        storedReview.googleClicked = true;
+        storeReview(storedReview);
+      }
+    };
+
+    try {
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon('/api/review/google-click', blob);
+        markClicked();
+        return;
+      }
+    } catch (error) {
+      // sendBeacon недоступний або не спрацював, продовжуємо
+    }
+
+    fetch('/api/review/google-click', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: payload,
+      keepalive: true,
+    })
+      .then(() => markClicked())
+      .catch(() => {
+        googleClickSent = storedReview?.googleClicked || false;
+      });
+  };
+
   const setStatus = (message, type) => {
     statusEl.textContent = message;
     statusEl.classList.remove('error', 'success');
@@ -154,6 +199,12 @@
     });
   });
 
+  if (rewardLink) {
+    rewardLink.addEventListener('click', () => {
+      void sendGoogleClickEvent();
+    });
+  }
+
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     setStatus('', null);
@@ -169,10 +220,20 @@
       return;
     }
 
+    const nameValue = nameInput.value.trim();
+
+    if (!nameValue) {
+      setStatus('Будь ласка, вкажіть своє імʼя.', 'error');
+      nameInput.focus();
+      return;
+    }
+
+    const reasonValue = feedbackInput.value.trim();
+
     const payload = {
-      name: nameInput.value.trim(),
+      name: nameValue,
       rating: selectedRating,
-      reason: feedbackInput.value.trim(),
+      reason: reasonValue,
     };
 
     if (payload.reason.length === 0 && selectedRating < 5) {
@@ -205,27 +266,31 @@
         reason: payload.reason,
         submittedAt: new Date().toISOString(),
         redirectUrl: result.redirectUrl || null,
+        googleClicked: false,
       };
 
       storeReview(storedReview);
+      googleClickSent = Boolean(storedReview.googleClicked);
       if (storedReview.redirectUrl) {
         showReward(storedReview.redirectUrl);
       }
       disableForm();
 
       if (result.redirectUrl) {
-        setStatus('Дякуємо! Перенаправляємо на сторінку Google...', 'success');
-        setTimeout(() => {
-          window.location.href = result.redirectUrl;
-        }, 1200);
+        setStatus('Дякуємо! Натисніть кнопку, щоб залишити відгук у Google.', 'success');
       } else {
         setStatus('Дякуємо за відгук! Наша команда з вами звʼяжеться.', 'success');
       }
     } catch (error) {
       setStatus(error.message || 'Сталася помилка. Спробуйте ще раз.', 'error');
     } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Надіслати відгук';
+      if (!formLocked) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Надіслати відгук';
+      } else {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Відгук залишено';
+      }
     }
   });
 
