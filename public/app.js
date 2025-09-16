@@ -8,6 +8,8 @@
   const submitBtn = form.querySelector('.submit-btn');
   const rewardBanner = document.getElementById('reward-banner');
   const rewardLink = document.getElementById('reward-link');
+  const tipsBanner = document.getElementById('tips-banner');
+  const tipsLink = document.getElementById('tips-link');
 
   let selectedRating = null;
   let googleClickSent = false;
@@ -104,6 +106,10 @@
     if (review.redirectUrl) {
       showReward(review.redirectUrl, true);
     }
+
+    if (review.googleClicked) {
+      showTips();
+    }
     setStatus('Ви вже залишили відгук. Дякуємо!', 'success');
     disableForm();
   };
@@ -120,15 +126,15 @@
   };
 
   const hideReward = () => {
-    if (!rewardBanner) {
-      return;
+    if (rewardBanner) {
+      rewardBanner.hidden = true;
     }
-
-    rewardBanner.hidden = true;
 
     if (rewardLink) {
       rewardLink.removeAttribute('href');
     }
+
+    hideTips();
   };
 
   const showReward = (url, preserve = false) => {
@@ -142,6 +148,20 @@
     if (!preserve) {
       setRating(5, { preserveReward: true });
     }
+  };
+
+  const hideTips = () => {
+    if (tipsBanner) {
+      tipsBanner.hidden = true;
+    }
+  };
+
+  const showTips = () => {
+    if (!tipsBanner || !tipsLink) {
+      return;
+    }
+
+    tipsBanner.hidden = false;
   };
 
   const sendGoogleClickEvent = () => {
@@ -161,6 +181,7 @@
         storedReview.googleClicked = true;
         storeReview(storedReview);
       }
+      showTips();
     };
 
     try {

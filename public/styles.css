@@ -181,6 +181,46 @@ textarea:focus {
   background: #f8c981;
 }
 
+.tips {
+  background: rgba(15, 66, 50, 0.07);
+  border: 1px solid rgba(15, 66, 50, 0.2);
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+.tips-title {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.tips-copy {
+  margin: 0 0 14px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.tips-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.tips-btn:hover,
+.tips-btn:focus {
+  transform: translateY(-1px);
+  background: var(--primary-dark);
+}
+
 .submit-btn {
   width: 100%;
   background: #0f4232;
