@@ -14,6 +14,7 @@
   let formLocked = false;
 
   const STORAGE_KEY = 'hataMasazhuReview';
+  const REVIEW_TTL_MS = 72 * 60 * 60 * 1000;
 
   const safeParse = (raw) => {
     try {
@@ -30,7 +31,26 @@
         return null;
       }
 
-      return safeParse(raw);
+      const parsed = safeParse(raw);
+
+      if (!parsed) {
+        localStorage.removeItem(STORAGE_KEY);
+        return null;
+      }
+
+      const submittedAt = parsed.submittedAt ? new Date(parsed.submittedAt).getTime() : null;
+
+      if (!submittedAt || Number.isNaN(submittedAt)) {
+        localStorage.removeItem(STORAGE_KEY);
+        return null;
+      }
+
+      if (Date.now() - submittedAt > REVIEW_TTL_MS) {
+        localStorage.removeItem(STORAGE_KEY);
+        return null;
+      }
+
+      return parsed;
     } catch (error) {
       return null;
     }
@@ -48,7 +68,7 @@
     formLocked = true;
     form.setAttribute('aria-disabled', 'true');
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Відгук залишено';
+    submitBtn.textContent = 'Відгук надіслано';
 
     stars.forEach((star) => {
       star.disabled = true;
@@ -216,14 +236,14 @@
     }
 
     if (!selectedRating) {
-      setStatus('Оберіть кількість зірок перед відправкою.', 'error');
+      setStatus('Будь ласка, оберіть кількість зірок перед відправкою', 'error');
       return;
     }
 
     const nameValue = nameInput.value.trim();
 
     if (!nameValue) {
-      setStatus('Будь ласка, вкажіть своє імʼя.', 'error');
+      setStatus('Будь ласка, вкажіть своє імʼя', 'error');
       nameInput.focus();
       return;
     }
@@ -237,7 +257,7 @@
     };
 
     if (payload.reason.length === 0 && selectedRating < 5) {
-      setStatus('Поділіться коротким коментарем, щоб ми могли вам допомогти.', 'error');
+      setStatus('Будь ласка, поділіться коротким коментарем, щоб ми могли Вам допомогти', 'error');
       feedbackInput.focus();
       return;
     }
@@ -257,7 +277,7 @@
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Не вдалось відправити відгук.');
+        throw new Error(result.error || 'Не вдалось відправити відгук. Будь ласка, напишіть адміністратору');
       }
 
       const storedReview = {
@@ -277,19 +297,19 @@
       disableForm();
 
       if (result.redirectUrl) {
-        setStatus('Дякуємо! Натисніть кнопку, щоб залишити відгук у Google.', 'success');
+        setStatus('Дякуємо! Натисніть кнопку, щоб залишити відгук у Google', 'success');
       } else {
-        setStatus('Дякуємо за відгук! Наша команда з вами звʼяжеться.', 'success');
+        setStatus('Дякуємо за Ваш відгук! Ми передали його керівництву для вирішення', 'success');
       }
     } catch (error) {
-      setStatus(error.message || 'Сталася помилка. Спробуйте ще раз.', 'error');
+      setStatus(error.message || 'Сталася помилка. Спробуйте ще раз', 'error');
     } finally {
       if (!formLocked) {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Надіслати відгук';
       } else {
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Відгук залишено';
+        submitBtn.textContent = 'Відгук надіслано';
       }
     }
   });

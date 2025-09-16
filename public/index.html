@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hata Masazhu Reviews</title>
+    <title>Відгук про Хату Масажу</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -13,19 +13,18 @@
         <div class="logo-wrap">
           <img src="logo.png" alt="Логотип Hata Masazhu" class="logo" />
         </div>
-        <h1>Як вам наш масаж?</h1>
+        <h1>Щиро дякуємо за візит до Хати Масажу!</h1>
         <p class="intro">
-          Залиште коротку оцінку зірками. Якщо щось було неідеально, розкажіть,
-          що ми можемо покращити, і команда одразу звʼяжеться з вами.
+          Для нас важлива Ваша думка. Як би Ви оцінили Ваш сеанс? Ми прагнемо створювати для Вас найкращий відпочинок і будемо раді Вашій оцінці!
         </p>
         <form id="review-form" novalidate>
           <label class="field">
-            <span>Ваше імʼя</span>
+            <span>Як до Вас звертатися?</span>
             <input type="text" name="name" id="guest-name" maxlength="60" placeholder="Ваше імʼя" required />
           </label>
 
           <fieldset class="field">
-            <legend>Оцініть обслуговування</legend>
+            <legend>Оцініть Ваш масаж</legend>
             <div class="stars" role="group" aria-label="Оберіть оцінку у зірках">
               <button type="button" class="star" data-value="1" aria-label="1 зірка">&#9733;</button>
               <button type="button" class="star" data-value="2" aria-label="2 зірки">&#9733;</button>
@@ -34,20 +33,20 @@
               <button type="button" class="star" data-value="5" aria-label="5 зірок">&#9733;</button>
             </div>
             <input type="hidden" name="rating" id="rating-value" />
-            <p class="field-help" id="rating-help">Оберіть від однієї до пʼяти зірок.</p>
+            <p class="field-help" id="rating-help">оберіть від однієї до пʼяти зірок</p>
           </fieldset>
 
           <label class="field" id="feedback-group">
             <span>Що ми можемо покращити?</span>
-            <textarea name="reason" id="feedback" rows="4" maxlength="500" placeholder="Опишіть кількома словами, що варто змінити"></textarea>
+            <textarea name="reason" id="feedback" rows="4" maxlength="500" placeholder="Опишіть кількома словами, як ми можемо стати кращими"></textarea>
           </label>
 
         <div class="form-status" role="alert" aria-live="polite"></div>
 
         <div class="reward" id="reward-banner" hidden>
-          <p class="reward-title">Дякуємо за пʼять зірок!</p>
+          <p class="reward-title">Дякуємо, що оцінили нас на найвищому рівні!</p>
           <p class="reward-copy">
-            Поділіться своїм досвідом у Google і покажіть підтвердження на наступному візиті, щоб отримати приємний бонус.
+            Будь ласка, залиште відгук на Google Maps — це допоможе іншим гостям знайти нас, а нам — ставати ще кращими! Як вдячність ми подаруємо Вам знижку 200 гривень на наступний масаж.
           </p>
           <a
             id="reward-link"
@@ -63,7 +62,7 @@
         <button type="submit" class="submit-btn">Надіслати відгук</button>
       </form>
       <p class="footer-note">
-        Дякуємо, що допомагаєте нам дарувати найкращий масаж.
+        Дякуємо, що допомагаєте нам дарувати найкращий сервіс для Вас!
       </p>
       </section>
     </main>

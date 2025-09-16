@@ -16,6 +16,20 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 
 const isValidRating = (rating) => Number.isInteger(rating) && rating >= 1 && rating <= 5;
 
+const formatDateTime = (value) => {
+  const date = value instanceof Date ? value : new Date(value);
+
+  const pad = (num) => String(num).padStart(2, '0');
+
+  const day = pad(date.getDate());
+  const month = pad(date.getMonth() + 1);
+  const year = date.getFullYear();
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+
+  return `${day}.${month}.${year} ${hours}:${minutes}`;
+};
+
 const sendTelegramMessage = async (text) => {
   if (!telegramBotToken || !telegramChatId) {
     throw new Error('Telegram configuration is missing. Please set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID.');
@@ -34,21 +48,20 @@ const sendTelegramNotification = async ({ name, rating, reason }) => {
     throw new Error('Telegram configuration is missing. Please set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID.');
   }
 
-  const messageLines = [
-    '\u2728 New massage review received!',
-    `Rating: ${rating} star${rating === 1 ? '' : 's'}`,
-  ];
+  const guestName = (name || '').trim();
+  const comment = (reason || '').trim();
 
-  if (name) {
-    messageLines.push(`Guest: ${name}`);
-  }
-
-  if (rating < 5 && reason) {
-    messageLines.push('\nGuest feedback:');
-    messageLines.push(reason);
-  }
-
-  const message = messageLines.join('\n');
+  const message = [
+    '✨Гість залишив відгук',
+    '',
+    `👤 Імя: ${guestName || 'Невідомо'}`,
+    `⭐️ ${rating}/5`,
+    comment ? `💬 Коментар: ${comment}` : null,
+    '',
+    `🕑 ${formatDateTime(new Date())}`
+  ]
+    .filter(Boolean)
+    .join('\n');
 
   await sendTelegramMessage(message);
 };
@@ -89,19 +102,16 @@ app.post('/api/review', async (req, res) => {
 
 app.post('/api/review/google-click', async (req, res) => {
   try {
-    const { name = '', rating } = req.body || {};
-    const parts = [];
+    const { name = '' } = req.body || {};
+    const guestName = (name || '').trim();
 
-    if (name) {
-      parts.push(`Гість: ${name}`);
-    }
-
-    if (typeof rating !== 'undefined') {
-      parts.push(`Оцінка: ${rating}`);
-    }
-
-    const messageRoot = parts.length ? parts.join('\n') + '\n' : '';
-    const message = `${messageRoot}Клієнт перейшов за посиланням Google для залишення відгуку.`;
+    const message = [
+      '🎉 Гість перейшов за посиланням у Гугл Відгук',
+      '',
+      `👤 Імя: ${guestName || 'Невідомо'}`,
+      '',
+      `🕑 ${formatDateTime(new Date())}`
+    ].join('\n');
 
     await sendTelegramMessage(message);
 
