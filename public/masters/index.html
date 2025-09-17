@@ -48,6 +48,13 @@
 
       .masters-card { padding: 24px; }
 
+      .page-subtitle {
+        margin: 4px 0 16px;
+        text-align: center;
+        font-weight: 800;
+        font-size: 1.1rem;
+      }
+
       .grid {
         display: grid;
         grid-template-columns: 1fr;
@@ -59,7 +66,8 @@
         border-radius: 14px;
         overflow: hidden;
         background: #fff;
-        max-width: 360px;
+        width: 100%;
+        max-width: 432px; /* fill card content width on 480px page */
         margin: 0 auto;
       }
       .person-media {
@@ -80,7 +88,8 @@
         -webkit-user-drag: none;
         user-select: none;
       }
-      .photo-bg.centered { background-position: 50% 50%; }
+  .photo-bg.centered { background-position: 50% 50%; }
+  .photo-bg.top { background-position: 50% 0%; }
       .photo-bg.zoom { background-size: 150% }
       .photo-bg.zoom-115 { background-size: 115% }
       .photo-bg.zoom-155 { background-size: 155% }
@@ -115,6 +124,7 @@
         <div class="logo-wrap">
           <img src="/logo.png" alt="Логотип Hata Masazhu" class="logo" />
         </div>
+        <h2 class="page-subtitle">Оберіть свого майстра</h2>
         <div class="grid">
           <!-- Master 1 -->
           <article class="person">
@@ -179,7 +189,7 @@
           <!-- Master 6 -->
           <article class="person">
             <div class="person-media">
-              <div class="photo-bg zoom" role="img" aria-label="Фото: Ігор" style="background-image: url('/masters/ihor.jpg'); background-image: image-set(url('/masters/ihor.webp') type('image/webp') 1x, url('/masters/ihor.jpg') type('image/jpeg') 1x);"></div>
+              <div class="photo-bg centered zoom" role="img" aria-label="Фото: Ігор" style="background-image: url('/masters/ihor.jpg'); background-image: image-set(url('/masters/ihor.webp') type('image/webp') 1x, url('/masters/ihor.jpg') type('image/jpeg') 1x); background-position: 50% 30%;"></div>
             </div>
             <div class="person-body">
               <h3 class="person-name">Ігор</h3>
