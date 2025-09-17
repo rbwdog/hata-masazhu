@@ -11,7 +11,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
 const telegramChatId = process.env.TELEGRAM_CHAT_ID;
-const googlePlaceId = process.env.GOOGLE_PLACE_ID;
+const googleReviewUrl = process.env.GOOGLE_REVIEW_URL;
 const isProd = process.env.NODE_ENV === 'production';
 const alertsEnabled = isProd && process.env.ERROR_ALERTS_ENABLED === '1';
 const ALERT_MIN_INTERVAL_MS = Number(process.env.ERROR_ALERT_MIN_MS || 5 * 60 * 1000);
@@ -55,24 +55,8 @@ app.use(express.static(publicDir, {
   fallthrough: true,
 }));
 
-// Helper to inject minimal runtime config into HTML
-const injectConfig = (html) => {
-  try {
-    const cfg = { PLACE_ID: googlePlaceId || null };
-    const script = `<script>window.__PLACE_ID__=${JSON.stringify(cfg.PLACE_ID)};<\/script>`;
-    return html.replace(/<\/(head)>/i, `${script}</$1>`);
-  } catch {
-    return html;
-  }
-};
-
 app.get('/', (req, res) => {
-  const filePath = path.join(publicDir, 'index.html');
-  res.type('html');
-  require('fs').readFile(filePath, 'utf8', (err, data) => {
-    if (err) return res.sendFile(filePath);
-    res.send(injectConfig(data));
-  });
+  res.sendFile(path.join(publicDir, 'index.html'));
 });
 
 // Rate limiters
@@ -198,8 +182,8 @@ app.post('/api/review', reviewLimiter, async (req, res) => {
 
     const responsePayload = { success: true };
 
-    if (numericRating === 5 && googlePlaceId) {
-      responsePayload.redirectUrl = `https://search.google.com/local/writereview?placeid=${encodeURIComponent(googlePlaceId)}`;
+    if (numericRating === 5 && googleReviewUrl) {
+      responsePayload.redirectUrl = googleReviewUrl;
     }
 
     return res.json(responsePayload);
@@ -283,12 +267,7 @@ app.post('/api/review/master-click', clickLimiter, async (req, res) => {
 });
 
 app.get('/masters', (req, res) => {
-  const filePath = path.join(__dirname, '..', 'public', 'masters', 'index.html');
-  res.type('html');
-  require('fs').readFile(filePath, 'utf8', (err, data) => {
-    if (err) return res.sendFile(filePath);
-    res.send(injectConfig(data));
-  });
+  res.sendFile(path.join(__dirname, '..', 'public', 'masters', 'index.html'));
 });
 
 // Express global error handler (fallback)

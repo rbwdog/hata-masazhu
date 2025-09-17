@@ -17,13 +17,6 @@
 
   const STORAGE_KEY = 'hataMasazhuReview';
   const REVIEW_TTL_MS = 72 * 60 * 60 * 1000;
-  const GOOGLE_PLACE_ID = (typeof window !== 'undefined' && window.__PLACE_ID__) || '';
-
-  const buildGoogleWebReviewUrl = () => (
-    GOOGLE_PLACE_ID
-      ? `https://search.google.com/local/writereview?placeid=${encodeURIComponent(GOOGLE_PLACE_ID)}&hl=uk`
-      : null
-  );
 
   const safeParse = (raw) => {
     try {
@@ -145,9 +138,11 @@
   };
 
   const showReward = (url, preserve = false) => {
-    if (!rewardBanner || !rewardLink) return;
-    const finalUrl = url || buildGoogleWebReviewUrl();
-    if (finalUrl) rewardLink.href = finalUrl;
+    if (!rewardBanner || !rewardLink || !url) {
+      return;
+    }
+
+    rewardLink.href = url;
     rewardBanner.hidden = false;
 
     if (!preserve) {
@@ -246,119 +241,9 @@
     });
   });
 
-  // Prefer opening Google Maps app; fallback to web review URL
-  function getSiteName() {
-    const m = document.querySelector('meta[property="og:site_name"]');
-    return (m && m.content) || 'Хата Масажу';
-  }
-
-  function buildGoogleMapsAppLink(webUrl) {
-    try {
-      // Prefer explicit Place ID if provided (include name for reliability)
-      const hl = 'uk';
-      if (GOOGLE_PLACE_ID) {
-        const name = getSiteName();
-        return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}&query_place_id=${encodeURIComponent(GOOGLE_PLACE_ID)}&hl=${hl}`;
-      }
-      const u = new URL(webUrl, window.location.origin);
-      const host = u.hostname;
-      const params = u.searchParams;
-      
-      // If writereview link with placeid param → open business in app via place_id
-      const pid = params.get('placeid');
-      if (pid) {
-        const name = getSiteName();
-        return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}&query_place_id=${encodeURIComponent(pid)}&hl=${hl}`;
-      }
-      // If CID is present → open business details by cid
-      const cid = params.get('cid');
-      if (cid) {
-        return `https://www.google.com/maps?cid=${encodeURIComponent(cid)}&hl=${hl}`;
-      }
-      // If it's already a google maps place/search URL, use it as-is (universal link triggers app)
-      if (/\.google\.(com|[a-z]{2,3})(\.[a-z]{2})?$/i.test(host) && host.includes('google')) {
-        return webUrl;
-      }
-      // Generic fallback: universal link wrapper to try app first
-      return `https://maps.app.goo.gl/?link=${encodeURIComponent(webUrl)}&apn=com.google.android.apps.maps&isi=585027354&ibi=com.google.Maps`;
-    } catch {
-      return webUrl;
-    }
-  }
-
-  function isIOS() {
-    const ua = navigator.userAgent || '';
-    return /iPhone|iPad|iPod/i.test(ua);
-  }
-
-  function isAndroid() {
-    const ua = navigator.userAgent || '';
-    return /Android/i.test(ua);
-  }
-
-  function isMobileDevice() {
-    const ua = navigator.userAgent || '';
-    const isTouchMac = /Macintosh/.test(ua) && 'ontouchend' in document;
-    return /(Android|iPhone|iPad|iPod)/i.test(ua) || isTouchMac;
-  }
-
-  function openGoogleReviewPreferApp(webUrl) {
-    try {
-      if (!isMobileDevice()) {
-        // Desktop: go directly to the web review form
-        window.location.href = webUrl;
-        return;
-      }
-      const name = getSiteName();
-      const pid = GOOGLE_PLACE_ID || '';
-      const hl = 'uk';
-      const candidates = [];
-      // Try the direct web review URL first; on Android Chrome this often opens
-      // the in-app review composer within Google Maps.
-      candidates.push(webUrl);
-
-      if (isIOS()) {
-        // iOS fallback: universal link to place details
-        candidates.push(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}&query_place_id=${encodeURIComponent(pid)}&hl=${hl}`);
-      } else if (isAndroid()) {
-        // Android fallbacks: universal link, then geo scheme as last resort
-        candidates.push(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}&query_place_id=${encodeURIComponent(pid)}&hl=${hl}`);
-        if (pid) candidates.push(`geo:0,0?q=place_id:${encodeURIComponent(pid)}`);
-      } else {
-        candidates.push(webUrl);
-      }
-
-      const tryNext = (i) => {
-        if (i >= candidates.length) {
-          window.location.href = webUrl;
-          return;
-        }
-        const target = candidates[i];
-        const start = Date.now();
-        let hidden = false;
-        const onVis = () => { if (document.visibilityState === 'hidden') hidden = true; };
-        document.addEventListener('visibilitychange', onVis, { once: true });
-        window.location.href = target;
-        setTimeout(() => {
-          document.removeEventListener('visibilitychange', onVis, { once: true });
-          if (!hidden && Date.now() - start < 1400) {
-            tryNext(i + 1);
-          }
-        }, 800);
-      };
-
-      tryNext(0);
-    } catch (e) {
-      window.location.href = webUrl;
-    }
-  }
-
   if (rewardLink) {
-    rewardLink.addEventListener('click', (e) => {
-      e.preventDefault();
+    rewardLink.addEventListener('click', () => {
       void sendGoogleClickEvent();
-      const webUrl = buildGoogleWebReviewUrl() || rewardLink.getAttribute('href') || '#';
-      openGoogleReviewPreferApp(webUrl);
     });
   }
 
