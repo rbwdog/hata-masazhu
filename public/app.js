@@ -17,6 +17,13 @@
 
   const STORAGE_KEY = 'hataMasazhuReview';
   const REVIEW_TTL_MS = 72 * 60 * 60 * 1000;
+  const GOOGLE_PLACE_ID = (typeof window !== 'undefined' && window.__PLACE_ID__) || '';
+
+  const buildGoogleWebReviewUrl = () => (
+    GOOGLE_PLACE_ID
+      ? `https://search.google.com/local/writereview?placeid=${encodeURIComponent(GOOGLE_PLACE_ID)}&hl=uk`
+      : null
+  );
 
   const safeParse = (raw) => {
     try {
@@ -138,11 +145,9 @@
   };
 
   const showReward = (url, preserve = false) => {
-    if (!rewardBanner || !rewardLink || !url) {
-      return;
-    }
-
-    rewardLink.href = url;
+    if (!rewardBanner || !rewardLink) return;
+    const finalUrl = url || buildGoogleWebReviewUrl();
+    if (finalUrl) rewardLink.href = finalUrl;
     rewardBanner.hidden = false;
 
     if (!preserve) {
@@ -242,9 +247,52 @@
   });
 
   // Prefer opening Google Maps app; fallback to web review URL
+  function buildGoogleMapsAppLink(webUrl) {
+    try {
+      // Prefer explicit Place ID if provided
+      const hl = 'uk';
+      if (GOOGLE_PLACE_ID) {
+        return `https://www.google.com/maps/search/?api=1&query_place_id=${encodeURIComponent(GOOGLE_PLACE_ID)}&hl=${hl}`;
+      }
+      const u = new URL(webUrl, window.location.origin);
+      const host = u.hostname;
+      const params = u.searchParams;
+      
+      // If writereview link with placeid param → open business in app via place_id
+      const pid = params.get('placeid');
+      if (pid) {
+        return `https://www.google.com/maps/search/?api=1&query_place_id=${encodeURIComponent(pid)}&hl=${hl}`;
+      }
+      // If CID is present → open business details by cid
+      const cid = params.get('cid');
+      if (cid) {
+        return `https://www.google.com/maps?cid=${encodeURIComponent(cid)}&hl=${hl}`;
+      }
+      // If it's already a google maps place/search URL, use it as-is (universal link triggers app)
+      if (/\.google\.(com|[a-z]{2,3})(\.[a-z]{2})?$/i.test(host) && host.includes('google')) {
+        return webUrl;
+      }
+      // Generic fallback: universal link wrapper to try app first
+      return `https://maps.app.goo.gl/?link=${encodeURIComponent(webUrl)}&apn=com.google.android.apps.maps&isi=585027354&ibi=com.google.Maps`;
+    } catch {
+      return webUrl;
+    }
+  }
+
+  function isMobileDevice() {
+    const ua = navigator.userAgent || '';
+    const isTouchMac = /Macintosh/.test(ua) && 'ontouchend' in document;
+    return /(Android|iPhone|iPad|iPod)/i.test(ua) || isTouchMac;
+  }
+
   function openGoogleReviewPreferApp(webUrl) {
     try {
-      const appLink = `https://maps.app.goo.gl/?link=${encodeURIComponent(webUrl)}&apn=com.google.android.apps.maps&isi=585027354&ibi=com.google.Maps`;
+      if (!isMobileDevice()) {
+        // Desktop: go directly to the web review form
+        window.location.href = webUrl;
+        return;
+      }
+      const appLink = buildGoogleMapsAppLink(webUrl);
       const start = Date.now();
       let hidden = false;
       const onVis = () => { if (document.visibilityState === 'hidden') hidden = true; };
@@ -265,7 +313,7 @@
     rewardLink.addEventListener('click', (e) => {
       e.preventDefault();
       void sendGoogleClickEvent();
-      const webUrl = rewardLink.getAttribute('href') || '#';
+      const webUrl = buildGoogleWebReviewUrl() || rewardLink.getAttribute('href') || '#';
       openGoogleReviewPreferApp(webUrl);
     });
   }
