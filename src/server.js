@@ -203,7 +203,7 @@ app.post('/api/review/google-click', clickLimiter, async (req, res) => {
     const guestName = (name || '').trim();
 
     const message = [
-      '🎉 Гість перейшов за посиланням у Гугл Відгук',
+      '🎉 Гість перейшов за посиланням у Гугл',
       `👤 Імя: ${guestName || 'Невідомо'}`,
       `🕑 ${formatDateTime(Date.now())}`
     ].join('\n');
