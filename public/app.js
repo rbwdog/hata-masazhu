@@ -247,12 +247,18 @@
   });
 
   // Prefer opening Google Maps app; fallback to web review URL
+  function getSiteName() {
+    const m = document.querySelector('meta[property="og:site_name"]');
+    return (m && m.content) || 'Хата Масажу';
+  }
+
   function buildGoogleMapsAppLink(webUrl) {
     try {
-      // Prefer explicit Place ID if provided
+      // Prefer explicit Place ID if provided (include name for reliability)
       const hl = 'uk';
       if (GOOGLE_PLACE_ID) {
-        return `https://www.google.com/maps/search/?api=1&query_place_id=${encodeURIComponent(GOOGLE_PLACE_ID)}&hl=${hl}`;
+        const name = getSiteName();
+        return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}&query_place_id=${encodeURIComponent(GOOGLE_PLACE_ID)}&hl=${hl}`;
       }
       const u = new URL(webUrl, window.location.origin);
       const host = u.hostname;
@@ -261,7 +267,8 @@
       // If writereview link with placeid param → open business in app via place_id
       const pid = params.get('placeid');
       if (pid) {
-        return `https://www.google.com/maps/search/?api=1&query_place_id=${encodeURIComponent(pid)}&hl=${hl}`;
+        const name = getSiteName();
+        return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}&query_place_id=${encodeURIComponent(pid)}&hl=${hl}`;
       }
       // If CID is present → open business details by cid
       const cid = params.get('cid');
@@ -279,6 +286,16 @@
     }
   }
 
+  function isIOS() {
+    const ua = navigator.userAgent || '';
+    return /iPhone|iPad|iPod/i.test(ua);
+  }
+
+  function isAndroid() {
+    const ua = navigator.userAgent || '';
+    return /Android/i.test(ua);
+  }
+
   function isMobileDevice() {
     const ua = navigator.userAgent || '';
     const isTouchMac = /Macintosh/.test(ua) && 'ontouchend' in document;
@@ -292,18 +309,42 @@
         window.location.href = webUrl;
         return;
       }
-      const appLink = buildGoogleMapsAppLink(webUrl);
-      const start = Date.now();
-      let hidden = false;
-      const onVis = () => { if (document.visibilityState === 'hidden') hidden = true; };
-      document.addEventListener('visibilitychange', onVis, { once: true });
-      window.location.href = appLink;
-      setTimeout(() => {
-        document.removeEventListener('visibilitychange', onVis, { once: true });
-        if (!hidden && Date.now() - start < 1600) {
+      const name = getSiteName();
+      const pid = GOOGLE_PLACE_ID || '';
+      const hl = 'uk';
+      const candidates = [];
+      if (isIOS()) {
+        // iOS URL scheme first, then universal link
+        if (pid) candidates.push(`comgooglemaps://?q=place_id:${encodeURIComponent(pid)}`);
+        candidates.push(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}&query_place_id=${encodeURIComponent(pid)}&hl=${hl}`);
+      } else if (isAndroid()) {
+        // Android geo scheme first, then universal link
+        if (pid) candidates.push(`geo:0,0?q=place_id:${encodeURIComponent(pid)}`);
+        candidates.push(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}&query_place_id=${encodeURIComponent(pid)}&hl=${hl}`);
+      } else {
+        candidates.push(webUrl);
+      }
+
+      const tryNext = (i) => {
+        if (i >= candidates.length) {
           window.location.href = webUrl;
+          return;
         }
-      }, 1200);
+        const target = candidates[i];
+        const start = Date.now();
+        let hidden = false;
+        const onVis = () => { if (document.visibilityState === 'hidden') hidden = true; };
+        document.addEventListener('visibilitychange', onVis, { once: true });
+        window.location.href = target;
+        setTimeout(() => {
+          document.removeEventListener('visibilitychange', onVis, { once: true });
+          if (!hidden && Date.now() - start < 1400) {
+            tryNext(i + 1);
+          }
+        }, 900);
+      };
+
+      tryNext(0);
     } catch (e) {
       window.location.href = webUrl;
     }
