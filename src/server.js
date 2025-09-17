@@ -1,4 +1,5 @@
 const express = require('express');
+const compression = require('compression');
 const axios = require('axios');
 const path = require('path');
 const dotenv = require('dotenv');
@@ -20,6 +21,8 @@ const MASTER_CLICK_DEDUP_MS = Number(process.env.MASTER_CLICK_DEDUP_MS || 30_000
 const masterClickCache = new Map();
 
 app.use(express.json());
+// Gzip/Brotli compression for text assets
+app.use(compression());
 // Review gating removed: /masters is publicly accessible
 
 // Trust proxy (needed on Render/Heroku to detect HTTPS)
@@ -83,6 +86,19 @@ app.use(express.static(publicDir, {
   index: false,
   redirect: false,
   fallthrough: true,
+  setHeaders: (res, filePath) => {
+    const ext = path.extname(filePath).toLowerCase();
+    // Long cache for static assets; moderate for CSS/JS to ease updates
+    if (['.png', '.jpg', '.jpeg', '.webp', '.svg', '.gif', '.ico', '.avif', '.bmp'].includes(ext)) {
+      res.setHeader('Cache-Control', 'public, max-age=2592000, immutable'); // 30 days
+    } else if (['.woff', '.woff2', '.ttf', '.eot'].includes(ext)) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); // 1 year
+    } else if (ext === '.css' || ext === '.js') {
+      res.setHeader('Cache-Control', 'public, max-age=604800'); // 7 days
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=300'); // 5 minutes default
+    }
+  },
 }));
 
 app.get('/', (req, res) => {
