@@ -314,8 +314,7 @@
       const hl = 'uk';
       const candidates = [];
       if (isIOS()) {
-        // iOS URL scheme first, then universal link
-        if (pid) candidates.push(`comgooglemaps://?q=place_id:${encodeURIComponent(pid)}`);
+        // iOS: rely on universal link; comgooglemaps scheme doesn't support place_id reliably
         candidates.push(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}&query_place_id=${encodeURIComponent(pid)}&hl=${hl}`);
       } else if (isAndroid()) {
         // Android geo scheme first, then universal link
