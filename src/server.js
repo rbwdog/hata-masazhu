@@ -27,11 +27,41 @@ app.set('trust proxy', 1);
 
 // Security headers
 app.use(helmet({
-  contentSecurityPolicy: false, // enable later if inline scripts are refactored
+  // We'll attach our own CSP/HSTS below to tune settings
+  contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
+  hsts: false,
 }));
 app.use(helmet.referrerPolicy({ policy: 'strict-origin-when-cross-origin' }));
 app.use(helmet.permittedCrossDomainPolicies());
+
+// Security headers (prod only)
+if (isProd) {
+  // Strict-Transport-Security (1 year) with preload
+  app.use(helmet.hsts({
+    maxAge: 31536000, // 1 year
+    includeSubDomains: true,
+    preload: true,
+  }));
+
+  // Baseline CSP with Trusted Types; allows current inline styles/scripts
+  app.use(helmet.contentSecurityPolicy({
+    useDefaults: true,
+    directives: {
+      "default-src": ["'self'"],
+      "base-uri": ["'self'"],
+      "object-src": ["'none'"],
+      "frame-ancestors": ["'none'"],
+      "img-src": ["'self'", 'data:'],
+      "connect-src": ["'self'"],
+      // Relaxations to keep current inline styles/scripts working
+      "style-src": ["'self'", "'unsafe-inline'"],
+      "script-src": ["'self'", "'unsafe-inline'"],
+      // DOM XSS hardening
+      "require-trusted-types-for": ["'script'"],
+    },
+  }));
+}
 
 // HTTPS redirect in production (skip healthz)
 app.use((req, res, next) => {

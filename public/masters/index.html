@@ -25,8 +25,9 @@
   <link rel="manifest" href="/site.webmanifest" />
   <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#0f4232" />
   <meta name="theme-color" content="#0f4232" />
-    <link rel="preload" href="/styles.css" as="style" />
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/styles.css" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="/styles.css" /></noscript>
+    <link rel="preload" as="image" href="/masters/alina.webp" imagesrcset="/masters/alina.webp 1x, /masters/alina.jpg 1x" imagesizes="(max-width: 560px) 92vw, 432px" />
     <style>
       .page {
         max-width: 480px;
@@ -79,6 +80,17 @@
         overflow: hidden;
         background: #eee;
       }
+      .person-img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: 50% 20%;
+      }
+      .person-img.zoom { transform: scale(1.5); transform-origin: 50% 50%; }
+      .person-img.zoom-115 { transform: scale(1.15); transform-origin: 50% 50%; }
+      .person-img.zoom-155 { transform: scale(1.55); transform-origin: 50% 50%; }
+      .person-img.centered { object-position: 50% 50%; }
       /* Background-image variant to deter Save Image on iOS */
       .photo-bg {
         width: 100%;
@@ -134,7 +146,11 @@
           <!-- Master 1 -->
           <article class="person">
             <div class="person-media">
-              <div class="photo-bg" role="img" aria-label="Фото: Аліна" style="background-image: url('/masters/alina.jpg'); background-image: image-set(url('/masters/alina.webp') type('image/webp') 1x, url('/masters/alina.jpg') type('image/jpeg') 1x);"></div>
+              <picture>
+                <source type="image/webp" srcset="/masters/alina.webp" />
+                <source type="image/jpeg" srcset="/masters/alina.jpg" />
+                <img class="person-img" src="/masters/alina.jpg" alt="Фото: Аліна" width="432" height="432" decoding="async" fetchpriority="high" />
+              </picture>
             </div>
             <div class="person-body">
               <h3 class="person-name">Аліна</h3>
@@ -146,7 +162,11 @@
           <!-- Master 2 -->
           <article class="person">
             <div class="person-media">
-              <div class="photo-bg" role="img" aria-label="Фото: Дмитро" style="background-image: url('/masters/dmytro.jpg'); background-image: image-set(url('/masters/dmytro.webp') type('image/webp') 1x, url('/masters/dmytro.jpg') type('image/jpeg') 1x);"></div>
+              <picture>
+                <source type="image/webp" srcset="/masters/dmytro.webp" />
+                <source type="image/jpeg" srcset="/masters/dmytro.jpg" />
+                <img class="person-img" src="/masters/dmytro.jpg" alt="Фото: Дмитро" width="432" height="432" decoding="async" loading="lazy" />
+              </picture>
             </div>
             <div class="person-body">
               <h3 class="person-name">Дмитро</h3>
@@ -158,7 +178,11 @@
           <!-- Master 3 -->
           <article class="person">
             <div class="person-media">
-              <div class="photo-bg zoom-115" role="img" aria-label="Фото: Ірина" style="background-image: url('/masters/iryna.jpg'); background-image: image-set(url('/masters/iryna.webp') type('image/webp') 1x, url('/masters/iryna.jpg') type('image/jpeg') 1x);"></div>
+              <picture>
+                <source type="image/webp" srcset="/masters/iryna.webp" />
+                <source type="image/jpeg" srcset="/masters/iryna.jpg" />
+                <img class="person-img zoom-115" src="/masters/iryna.jpg" alt="Фото: Ірина" width="432" height="432" decoding="async" loading="lazy" />
+              </picture>
             </div>
             <div class="person-body">
               <h3 class="person-name">Ірина</h3>
@@ -170,7 +194,11 @@
           <!-- Master 4 -->
           <article class="person">
             <div class="person-media">
-              <div class="photo-bg centered zoom-155" role="img" aria-label="Фото: Любов" style="background-image: url('/masters/liubov.jpg'); background-image: image-set(url('/masters/liubov.webp') type('image/webp') 1x, url('/masters/liubov.jpg') type('image/jpeg') 1x);"></div>
+              <picture>
+                <source type="image/webp" srcset="/masters/liubov.webp" />
+                <source type="image/jpeg" srcset="/masters/liubov.jpg" />
+                <img class="person-img centered zoom-155" src="/masters/liubov.jpg" alt="Фото: Любов" width="432" height="432" decoding="async" loading="lazy" />
+              </picture>
             </div>
             <div class="person-body">
               <h3 class="person-name">Любов</h3>
@@ -182,7 +210,11 @@
           <!-- Master 5 -->
           <article class="person">
             <div class="person-media">
-              <div class="photo-bg centered zoom" role="img" aria-label="Фото: Ольга" style="background-image: url('/masters/olha.jpg'); background-image: image-set(url('/masters/olha.webp') type('image/webp') 1x, url('/masters/olha.jpg') type('image/jpeg') 1x);"></div>
+              <picture>
+                <source type="image/webp" srcset="/masters/olha.webp" />
+                <source type="image/jpeg" srcset="/masters/olha.jpg" />
+                <img class="person-img centered zoom" src="/masters/olha.jpg" alt="Фото: Ольга" width="432" height="432" decoding="async" loading="lazy" />
+              </picture>
             </div>
             <div class="person-body">
               <h3 class="person-name">Ольга</h3>
@@ -194,7 +226,11 @@
           <!-- Master 6 -->
           <article class="person">
             <div class="person-media">
-              <div class="photo-bg centered zoom" role="img" aria-label="Фото: Ігор" style="background-image: url('/masters/ihor.jpg'); background-image: image-set(url('/masters/ihor.webp') type('image/webp') 1x, url('/masters/ihor.jpg') type('image/jpeg') 1x); background-position: 50% 30%;"></div>
+              <picture>
+                <source type="image/webp" srcset="/masters/ihor.webp" />
+                <source type="image/jpeg" srcset="/masters/ihor.jpg" />
+                <img class="person-img centered zoom" src="/masters/ihor.jpg" alt="Фото: Ігор" width="432" height="432" decoding="async" loading="lazy" style="object-position: 50% 30%;" />
+              </picture>
             </div>
             <div class="person-body">
               <h3 class="person-name">Ігор</h3>
