@@ -241,9 +241,32 @@
     });
   });
 
+  // Prefer opening Google Maps app; fallback to web review URL
+  function openGoogleReviewPreferApp(webUrl) {
+    try {
+      const appLink = `https://maps.app.goo.gl/?link=${encodeURIComponent(webUrl)}&apn=com.google.android.apps.maps&isi=585027354&ibi=com.google.Maps`;
+      const start = Date.now();
+      let hidden = false;
+      const onVis = () => { if (document.visibilityState === 'hidden') hidden = true; };
+      document.addEventListener('visibilitychange', onVis, { once: true });
+      window.location.href = appLink;
+      setTimeout(() => {
+        document.removeEventListener('visibilitychange', onVis, { once: true });
+        if (!hidden && Date.now() - start < 1600) {
+          window.location.href = webUrl;
+        }
+      }, 1200);
+    } catch (e) {
+      window.location.href = webUrl;
+    }
+  }
+
   if (rewardLink) {
-    rewardLink.addEventListener('click', () => {
+    rewardLink.addEventListener('click', (e) => {
+      e.preventDefault();
       void sendGoogleClickEvent();
+      const webUrl = rewardLink.getAttribute('href') || '#';
+      openGoogleReviewPreferApp(webUrl);
     });
   }
 
