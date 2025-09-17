@@ -339,4 +339,6 @@
   });
 
   hydrateFromStorage();
+
+  // OS autofill remains via autocomplete attributes on the input
 })();

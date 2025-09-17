@@ -37,10 +37,10 @@
         <p class="intro">
           Для нас важлива Ваша думка. Як би Ви оцінили Ваш сеанс? Ми прагнемо створювати для Вас найкращий відпочинок і будемо раді Вашій оцінці!
         </p>
-        <form id="review-form" novalidate>
+        <form id="review-form" autocomplete="on" novalidate>
           <label class="field">
             <span>Як до Вас звертатися?</span>
-            <input type="text" name="name" id="guest-name" maxlength="60" placeholder="Ваше імʼя" required />
+            <input type="text" name="name" id="guest-name" maxlength="60" placeholder="Ваше імʼя" autocomplete="name" autocapitalize="words" inputmode="text" enterkeyhint="done" required />
           </label>
 
           <fieldset class="field">
