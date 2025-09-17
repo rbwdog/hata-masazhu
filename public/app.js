@@ -313,13 +313,17 @@
       const pid = GOOGLE_PLACE_ID || '';
       const hl = 'uk';
       const candidates = [];
+      // Try the direct web review URL first; on Android Chrome this often opens
+      // the in-app review composer within Google Maps.
+      candidates.push(webUrl);
+
       if (isIOS()) {
-        // iOS: rely on universal link; comgooglemaps scheme doesn't support place_id reliably
+        // iOS fallback: universal link to place details
         candidates.push(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}&query_place_id=${encodeURIComponent(pid)}&hl=${hl}`);
       } else if (isAndroid()) {
-        // Android geo scheme first, then universal link
-        if (pid) candidates.push(`geo:0,0?q=place_id:${encodeURIComponent(pid)}`);
+        // Android fallbacks: universal link, then geo scheme as last resort
         candidates.push(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}&query_place_id=${encodeURIComponent(pid)}&hl=${hl}`);
+        if (pid) candidates.push(`geo:0,0?q=place_id:${encodeURIComponent(pid)}`);
       } else {
         candidates.push(webUrl);
       }
@@ -340,7 +344,7 @@
           if (!hidden && Date.now() - start < 1400) {
             tryNext(i + 1);
           }
-        }, 900);
+        }, 800);
       };
 
       tryNext(0);
