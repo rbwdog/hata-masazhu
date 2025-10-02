@@ -316,6 +316,11 @@ app.get('/masters', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'masters', 'index.html'));
 });
 
+// 404 for everything else (must be after routes, before error handler)
+app.use((req, res) => {
+  res.status(404).sendFile(path.join(__dirname, '..', 'public', '404.html'));
+});
+
 // Express global error handler (fallback)
 app.use(async (err, req, res, next) => {
   console.error('Unhandled route error', err);
