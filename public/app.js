@@ -108,7 +108,7 @@
     }
 
     if (review.googleClicked) {
-      showTips();
+      showTips(true);
     }
     setStatus('Ви вже залишили відгук. Дякуємо!', 'success');
     disableForm();
@@ -147,6 +147,18 @@
 
     if (!preserve) {
       setRating(5, { preserveReward: true });
+      // Smoothly bring the Google review button into view and focus it
+      try {
+        // Defer a tick to ensure layout is updated
+        setTimeout(() => {
+          try {
+            rewardLink.focus({ preventScroll: true });
+          } catch (_) {}
+          if (typeof rewardLink.scrollIntoView === 'function') {
+            rewardLink.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+          }
+        }, 50);
+      } catch (_) {}
     }
   };
 
@@ -156,12 +168,23 @@
     }
   };
 
-  const showTips = () => {
+  const showTips = (preserve = false) => {
     if (!tipsBanner || !tipsLink) {
       return;
     }
 
     tipsBanner.hidden = false;
+
+    if (!preserve) {
+      try {
+        setTimeout(() => {
+          try { tipsLink.focus({ preventScroll: true }); } catch (_) {}
+          if (typeof tipsLink.scrollIntoView === 'function') {
+            tipsLink.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+          }
+        }, 50);
+      } catch (_) {}
+    }
   };
 
 
@@ -182,7 +205,7 @@
         storedReview.googleClicked = true;
         storeReview(storedReview);
       }
-      showTips();
+      showTips(false);
     };
 
     try {
