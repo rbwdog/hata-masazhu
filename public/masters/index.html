@@ -25,112 +25,9 @@
   <link rel="manifest" href="/site.webmanifest" />
   <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#0f4232" />
   <meta name="theme-color" content="#0f4232" />
-    <link rel="preload" href="/styles.css" as="style" />
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="preload" href="/styles.css?v=2" as="style" />
+    <link rel="stylesheet" href="/styles.css?v=2" />
     <link rel="preload" as="image" href="/masters/alina.webp" imagesrcset="/masters/alina.webp 1x, /masters/alina.jpg 1x" imagesizes="(max-width: 560px) 92vw, 432px" />
-    <style>
-      .page {
-        max-width: 480px;
-        margin: 0 auto;
-      }
-      .page-header {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        margin-bottom: 20px;
-      }
-      .brand {
-        display: inline-flex;
-        align-items: center;
-        gap: 12px;
-        text-decoration: none;
-        color: var(--text);
-      }
-      .brand img { width: 40px; height: 40px; border-radius: 8px; }
-      .brand span { font-weight: 800; letter-spacing: 0.2px; }
-
-      .masters-card { padding: 24px; }
-
-      .page-subtitle {
-        margin: 4px 0 16px;
-        text-align: center;
-        font-weight: 800;
-        font-size: 1.1rem;
-      }
-
-      .grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 18px;
-      }
-
-      .person {
-        border: 1px solid rgba(63, 43, 39, 0.12);
-        border-radius: 14px;
-        overflow: hidden;
-        background: #fff;
-        width: 100%;
-        max-width: 432px; /* fill card content width on 480px page */
-        margin: 0 auto;
-      }
-      .person-media {
-        position: relative;
-        width: 100%;
-        aspect-ratio: 1 / 1;
-        overflow: hidden;
-        background: #eee;
-      }
-      .person-img {
-        display: block;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: 50% 20%;
-      }
-      .person-img.zoom { transform: scale(1.5); transform-origin: 50% 50%; }
-      .person-img.zoom-115 { transform: scale(1.15); transform-origin: 50% 50%; }
-      .person-img.zoom-155 { transform: scale(1.55); transform-origin: 50% 50%; }
-      .person-img.centered { object-position: 50% 50%; }
-      /* Background-image variant to deter Save Image on iOS */
-      .photo-bg {
-        width: 100%;
-        height: 100%;
-        background-repeat: no-repeat;
-        background-size: cover;
-        background-position: 50% 20%;
-        -webkit-touch-callout: none;
-        -webkit-user-drag: none;
-        user-select: none;
-      }
-  .photo-bg.centered { background-position: 50% 50%; }
-  .photo-bg.top { background-position: 50% 0%; }
-      .photo-bg.zoom { background-size: 150% }
-      .photo-bg.zoom-115 { background-size: 115% }
-      .photo-bg.zoom-155 { background-size: 155% }
-      .person-body {
-        padding: 12px 14px 16px;
-        text-align: center;
-      }
-  .person-name { margin: 0 0 18px; font-size: 1.05rem; font-weight: 800; }
-  .person-actions { display: flex; gap: 8px; justify-content: center; }
-      .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 9px 14px;
-        border-radius: 999px;
-        text-decoration: none;
-        font-weight: 700;
-        transition: transform 0.15s ease, background 0.15s ease;
-      }
-      .btn.primary { background: #0f4232; color: #fff; cursor: pointer; }
-      .btn.primary:hover,
-      .btn.primary:focus { background: #0c3629; transform: translateY(-1px); }
-      .btn.ghost { background: #fff; color: var(--text); border: 1px solid rgba(63,43,39,0.15); }
-      .btn.ghost:hover { background: #faf8f6; transform: translateY(-1px); }
-
-      @media (max-width: 560px) { .page { padding: 0 4px;} }
-    </style>
   </head>
   <body>
     <main class="container page">
@@ -227,9 +124,9 @@
           <article class="person">
             <div class="person-media">
               <picture>
-                <source type="image/webp" srcset="/masters/ihor-432.webp 432w, /masters/ihor-864.webp 864w, /masters/ihor-1080.webp 1080w" sizes="(max-width: 560px) 92vw, 432px" />
-                <source type="image/jpeg" srcset="/masters/ihor-432.jpg 432w, /masters/ihor-864.jpg 864w, /masters/ihor-1080.jpg 1080w" sizes="(max-width: 560px) 92vw, 432px" />
-                <img class="person-img centered zoom" src="/masters/ihor-432.jpg" alt="Фото: Ігор" width="432" height="432" decoding="async" loading="lazy" style="object-position: 50% 30%;" />
+                <source type="image/webp" srcset="/masters/ihor-432.webp?v=4 432w, /masters/ihor-864.webp?v=4 864w, /masters/ihor-1296.webp?v=4 1296w" sizes="(max-width: 560px) 92vw, 432px" />
+                <source type="image/jpeg" srcset="/masters/ihor-432.jpg?v=4 432w, /masters/ihor-864.jpg?v=4 864w, /masters/ihor-1296.jpg?v=4 1296w" sizes="(max-width: 560px) 92vw, 432px" />
+                <img class="person-img centered pos-top-46" src="/masters/ihor-432.jpg?v=4" alt="Фото: Ігор" width="432" height="432" decoding="async" loading="lazy" />
               </picture>
             </div>
             <div class="person-body">
@@ -239,59 +136,26 @@
               </div>
             </div>
           </article>
+          <!-- Master 7 -->
+          <article class="person">
+            <div class="person-media">
+              <picture>
+                <source type="image/webp" srcset="/masters/daria-432.webp?v=2 432w, /masters/daria-864.webp?v=2 864w, /masters/daria-1296.webp?v=2 1296w" sizes="(max-width: 560px) 92vw, 432px" />
+                <source type="image/jpeg" srcset="/masters/daria-432.jpg?v=2 432w, /masters/daria-864.jpg?v=2 864w, /masters/daria-1296.jpg?v=2 1296w" sizes="(max-width: 560px) 92vw, 432px" />
+                <img class="person-img centered zoom-135" src="/masters/daria-432.jpg?v=2" alt="Фото: Дарʼя" width="432" height="432" decoding="async" loading="lazy" />
+              </picture>
+            </div>
+            <div class="person-body">
+              <h3 class="person-name">Дарʼя</h3>
+              <div class="person-actions">
+             <a class="btn primary" data-master="Дарʼя" href="https://n1219600.alteg.io/company/1165731/personal/select-master/master-info/1165731/2890163?o=">Залишити відгук</a>
+              </div>
+            </div>
+          </article>
         </div>
       </section>
     </main>
     
-    <script>
-      // Prevent desktop right-click save on background images
-      document.addEventListener('contextmenu', function(e){
-        if (e.target && e.target.closest('.photo-bg')) { e.preventDefault(); }
-      }, true);
-    </script>
-    <script>
-    (() => {
-      const links = Array.from(document.querySelectorAll('.btn.primary[data-master]'));
-      if (!links.length) return;
-        const STORAGE_KEY = 'hataMasazhuReview';
-        const safeParse = (raw) => { try { return JSON.parse(raw); } catch { return null; } };
-        const getStored = () => {
-          try { return safeParse(localStorage.getItem(STORAGE_KEY)); } catch { return null; }
-        };
-        const store = (obj) => {
-          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); } catch {}
-        };
-        let masterClickSent = !!(getStored()?.masterClicked);
-      const ping = (master) => {
-          if (masterClickSent) return;
-          const stored = getStored();
-          if (stored?.masterClicked) return;
-          const name = (stored?.name || '').trim();
-          const rating = stored?.rating ?? undefined;
-          const payload = JSON.stringify({ master, name, rating });
-          const markClicked = () => {
-            masterClickSent = true;
-            if (stored) {
-              stored.masterClicked = true;
-              store(stored);
-            }
-          };
-        try {
-          if (navigator.sendBeacon) {
-            const blob = new Blob([payload], { type: 'application/json' });
-              navigator.sendBeacon('/api/review/master-click', blob);
-              markClicked();
-            return;
-          }
-        } catch (e) {}
-          fetch('/api/review/master-click', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload, keepalive: true })
-            .then(() => markClicked())
-            .catch(() => {});
-      };
-        links.forEach((a) => {
-          a.addEventListener('click', () => ping(a.getAttribute('data-master')), { once: true });
-        });
-    })();
-    </script>
+    <script src="/masters/page.js" defer></script>
   </body>
 </html>
