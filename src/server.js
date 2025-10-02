@@ -20,6 +20,66 @@ let lastAlertAt = 0;
 const MASTER_CLICK_DEDUP_MS = Number(process.env.MASTER_CLICK_DEDUP_MS || 30_000);
 const masterClickCache = new Map();
 
+const MAX_NAME_LENGTH = 60;
+const MAX_REASON_LENGTH = 500;
+const CONTROL_CHAR_REGEX = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g;
+const TELEGRAM_TIMEOUT_MS = Number(process.env.TELEGRAM_TIMEOUT_MS || 5000);
+const TELEGRAM_RETRY_ATTEMPTS = Number(process.env.TELEGRAM_RETRY_ATTEMPTS || 1);
+const TELEGRAM_RETRY_DELAY_MS = Number(process.env.TELEGRAM_RETRY_DELAY_MS || 500);
+
+const toCleanString = (value) => (typeof value === 'string' ? value : '');
+
+const stripControlChars = (value) => value.replace(CONTROL_CHAR_REGEX, '');
+
+const sanitizeText = (raw, maxLength) => {
+  const cleaned = stripControlChars(toCleanString(raw));
+  return cleaned.trim().slice(0, maxLength);
+};
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const telegramClient = axios.create({
+  baseURL: 'https://api.telegram.org',
+  timeout: TELEGRAM_TIMEOUT_MS,
+});
+
+const shouldRetryTelegram = (error) => {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+
+  if (error.code === 'ECONNABORTED') {
+    return true;
+  }
+
+  if (!error.response) {
+    // Network / connection level issue without HTTP response
+    return true;
+  }
+
+  return false;
+};
+
+const sendTelegramWithRetry = async (endpoint, payload) => {
+  let attempt = 0;
+
+  for (;;) {
+    try {
+      await telegramClient.post(endpoint, payload);
+      return;
+    } catch (error) {
+      attempt += 1;
+      const canRetry = attempt <= TELEGRAM_RETRY_ATTEMPTS && shouldRetryTelegram(error);
+      if (!canRetry) {
+        throw error;
+      }
+      if (TELEGRAM_RETRY_DELAY_MS > 0) {
+        await sleep(TELEGRAM_RETRY_DELAY_MS);
+      }
+    }
+  }
+};
+
 app.use(express.json());
 // Gzip/Brotli compression for text assets
 app.use(compression());
@@ -58,8 +118,8 @@ if (isProd) {
       "img-src": ["'self'", 'data:'],
       "connect-src": ["'self'"],
       // Relaxations to keep current inline styles/scripts working
-      "style-src": ["'self'", "'unsafe-inline'"],
-      "script-src": ["'self'", "'unsafe-inline'"],
+      "style-src": ["'self'"],
+      "script-src": ["'self'"],
       // DOM XSS hardening
       "require-trusted-types-for": ["'script'"],
     },
@@ -145,9 +205,7 @@ const sendTelegramMessage = async (text) => {
     throw new Error('Telegram configuration is missing. Please set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID.');
   }
 
-  const url = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
-
-  await axios.post(url, {
+  await sendTelegramWithRetry(`/bot${telegramBotToken}/sendMessage`, {
     chat_id: telegramChatId,
     text,
   });
@@ -207,23 +265,27 @@ const sendTelegramNotification = async ({ name, rating, reason }) => {
 
 app.post('/api/review', reviewLimiter, async (req, res) => {
   try {
-    const { name = '', rating, reason = '' } = req.body || {};
+    const { name, rating, reason } = req.body || {};
     const numericRating = Number(rating);
 
     if (!isValidRating(numericRating)) {
       return res.status(400).json({ error: 'Rating must be an integer between 1 and 5.' });
     }
 
-    const trimmedReason = reason.trim();
+    const sanitizedName = sanitizeText(name, MAX_NAME_LENGTH);
+    if (!sanitizedName) {
+      return res.status(400).json({ error: 'Name is required.' });
+    }
 
-    if (numericRating < 5 && !trimmedReason) {
+    const sanitizedReason = sanitizeText(reason, MAX_REASON_LENGTH);
+    if (numericRating < 5 && !sanitizedReason) {
       return res.status(400).json({ error: 'Please provide a short note about your experience.' });
     }
 
     await sendTelegramNotification({
-      name: name.trim(),
+      name: sanitizedName,
       rating: numericRating,
-      reason: trimmedReason,
+      reason: sanitizedReason,
     });
 
     const responsePayload = { success: true };
@@ -239,14 +301,14 @@ app.post('/api/review', reviewLimiter, async (req, res) => {
       `⚠️ ${error && error.message}`,
       error && error.stack ? `Stack:\n${error.stack}` : null,
     ]);
-    return res.status(500).json({ error: 'Unable to submit review right now. Please try again later.' });
+    return res.status(500).json({ error: 'Не вдалося надіслати відгук. Будь ласка, спробуйте ще раз пізніше.' });
   }
 });
 
 app.post('/api/review/google-click', clickLimiter, async (req, res) => {
   try {
-    const { name = '' } = req.body || {};
-    const guestName = (name || '').trim();
+    const { name } = req.body || {};
+    const guestName = sanitizeText(name, MAX_NAME_LENGTH);
 
     const message = [
       '🎉 Гість перейшов за посиланням у Гугл',
@@ -271,7 +333,7 @@ app.post('/api/review/google-click', clickLimiter, async (req, res) => {
 
 app.post('/api/review/master-click', clickLimiter, async (req, res) => {
   try {
-    const { name = '', rating, master } = req.body || {};
+    const { name, rating, master } = req.body || {};
     const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown';
     const key = `${ip}::${master || 'unknown'}`;
     const now = Date.now();
@@ -286,7 +348,7 @@ app.post('/api/review/master-click', clickLimiter, async (req, res) => {
         if (now - t > MASTER_CLICK_DEDUP_MS) masterClickCache.delete(k);
       }
     }
-    const guestName = (name || '').trim();
+    const guestName = sanitizeText(name, MAX_NAME_LENGTH);
     const numericRating = Number(rating);
 
     const parts = [
